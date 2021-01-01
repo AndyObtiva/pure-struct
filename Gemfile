@@ -8,7 +8,9 @@ source "https://rubygems.org"
 group :development do
   gem "rspec", "~> 3.5.0"
   gem "rdoc", "~> 3.12"
-  gem "bundler", "~> 1.0"
+  gem "bundler", ">= 1.0"
   gem "juwelier", "~> 2.1.0"
-  gem "simplecov", ">= 0"
+  gem 'simplecov', '~> 0.16.0'
+  gem 'coveralls', require: false
+  gem 'puts_debuggerer', '>= 0'
 end

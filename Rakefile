@@ -19,7 +19,8 @@ Juwelier::Tasks.new do |gem|
   gem.summary = %Q{Pure Ruby Re-Implementation of Struct}
   gem.description = %Q{Pure Ruby re-implementation of Struct to ensure cross-Ruby functionality where needed (e.g. Opal)}
   gem.email = "andy.am@gmail.com"
-  gem.authors = ["Andy maleh"]
+  gem.authors = ["Andy Maleh"]
+  gem.files = Dir['README.md', 'LICENSE.txt', 'VERSION', 'CHANGELOG.md', 'pure-struct.gemspec', 'lib/**/*']
 
   # dependencies defined in Gemfile
 end
@@ -46,4 +47,12 @@ Rake::RDocTask.new do |rdoc|
   rdoc.title = "pure-struct #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
+end
+
+require 'coveralls/rake/task'
+Coveralls::RakeTask.new
+task :spec_with_coveralls => [:spec] do
+  ENV['TRAVIS'] = 'true'
+  ENV['CI'] = 'true' if ENV['CI'].nil?
+  Rake::Task['coveralls:push'].invoke
 end
