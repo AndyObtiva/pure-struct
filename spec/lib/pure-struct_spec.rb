@@ -9,6 +9,10 @@ RSpec.describe Struct do
     Struct = NativeStruct
     Object.send(:remove_const, :PersonStruct) if Object.constants.include?(:PersonStruct)
   end
+    
+  after do
+    RUBY_ENGINE = @ruby_engine
+  end
 
   let(:full_name) {'Sean Hux'}
   let(:age) {48}
@@ -129,6 +133,16 @@ RSpec.describe Struct do
       expect {
         Struct.new('personStruct', :full_name, :age, keyword_init: true)
       }.to raise_error(NameError, 'identifier name needs to be constant')
+    end
+    
+    it 'does not raise error in Opal if class name does not start with capital letter, yet treats as an attribute instead (since Opal does not distinguish String from Symbol)' do
+      RUBY_ENGINE = 'opal'
+      struct = nil
+      expect {
+        struct = Struct.new('personStruct', :full_name, :age)
+      }.to_not raise_error
+      object = struct.new('person struct value', 'full name value', 'age value')
+      expect(object.members).to eq([:personStruct, :full_name, :age])
     end
     
     it 'raises error if no attributes are passed in' do

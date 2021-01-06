@@ -123,7 +123,7 @@ class Struct
     end
     
     CLASS_NAME_EXTRACTION = lambda do |class_name_or_attribute|
-      if class_name_or_attribute.is_a?(String)
+      if class_name_or_attribute.is_a?(String) && RUBY_ENGINE != 'opal'
         raise NameError, "identifier name needs to be constant" unless class_name_or_attribute.match(/^[A-Z]/)
         class_name_or_attribute
       end
