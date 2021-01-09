@@ -21,6 +21,7 @@ RSpec.describe Struct do
     it 'builds a new anonymous class, can set/get attributes, and provide equality methods' do
       struct = Struct.new(:full_name, :age, keyword_init: true)
       expect(struct.name).to be_nil
+      expect(struct.inspect).to eq("#{struct.__inspect__}(keyword_init: true)")
       
       object = struct.new(full_name: full_name, age: age)
       expect(object).to be_a(struct)
@@ -80,6 +81,7 @@ RSpec.describe Struct do
       struct = Struct.new('PersonStruct', :full_name, :age, keyword_init: true)
       expect(struct).to eq(Struct::PersonStruct)
       expect(Struct::PersonStruct.name).to eq('Struct::PersonStruct')
+      expect(Struct::PersonStruct.inspect).to eq("Struct::PersonStruct(keyword_init: true)")
       
       object = Struct::PersonStruct.new(full_name: full_name, age: age)
       
@@ -175,6 +177,7 @@ RSpec.describe Struct do
     it 'builds a new anonymous class, can set/get attributes, and provide equality methods' do
       struct = Struct.new(:full_name, 'age')
       expect(struct.name).to be_nil
+      expect(struct.inspect).to eq("#{struct.__inspect__}")
       
       object = struct.new(full_name, age)
       
@@ -231,6 +234,7 @@ RSpec.describe Struct do
       struct = Struct.new('PersonStruct', :full_name, :age, keyword_init: false)
       expect(struct).to eq(Struct::PersonStruct)
       expect(Struct::PersonStruct.name).to eq('Struct::PersonStruct')
+      expect(Struct::PersonStruct.inspect).to eq("Struct::PersonStruct")
       
       object = Struct::PersonStruct.new(full_name, age)
       

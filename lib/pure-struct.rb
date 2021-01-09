@@ -29,6 +29,12 @@ class Struct
   class << self
     CLASS_DEFINITION_FOR_ATTRIBUTES = lambda do |attributes, keyword_init|
       lambda do |defined_class|
+        defined_class.singleton_class.define_method(:new) {|*args, &block| __new__(*args, &block)}
+        defined_class.singleton_class.alias_method(:__inspect__, :inspect)
+        defined_class.singleton_class.define_method(:inspect) do
+          "#{__inspect__}#{'(keyword_init: true)' if keyword_init}"
+        end
+      
         attributes.each do |attribute|
           define_method(attribute) do
             self[attribute]
@@ -145,7 +151,6 @@ class Struct
       attributes.unshift(class_name_or_attribute) if class_name.nil?
       attributes = attributes.map(&:to_sym)
       struct_class = Class.new(self, &CLASS_DEFINITION_FOR_ATTRIBUTES[attributes, keyword_init])
-      struct_class.singleton_class.define_method(:new) {|*args, &block| __new__(*args, &block)}
       class_name.nil? ? struct_class : const_set(class_name, struct_class)
     end
       

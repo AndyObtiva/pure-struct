@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.2
+
+- Ensure StructClass.inspect shows `(keyword_init: true)` (e.g. `Person(keyword_init: true) `)
+-
+
 ## 1.0.1
 
 - Include `Enumerable` just as in native `Struct`

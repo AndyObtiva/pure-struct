@@ -22,7 +22,13 @@ Run:
 Or add to [Gemfile](https://bundler.io/man/gemfile.5.html):
 
 ```ruby
-gem 'pure-struct', '~> 1.0.1'
+gem 'pure-struct', '~> 1.0.2'
+```
+
+If you want to use in [Opal](https://opalrb.com/) only inside [Rails](https://rubyonrails.org/), suffix with `require: false`:
+
+```ruby
+gem 'pure-struct', '~> 1.0.2', require: false
 ```
 
 And, run:
