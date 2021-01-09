@@ -23,6 +23,9 @@ RSpec.describe Struct do
       expect(struct.name).to be_nil
       
       object = struct.new(full_name: full_name, age: age)
+      expect(object).to be_a(struct)
+      expect(object).to be_a(Struct)
+      expect(object).to be_a(Enumerable)
       
       # getters
       expect(object.full_name).to eq(full_name)
@@ -143,6 +146,7 @@ RSpec.describe Struct do
       }.to_not raise_error
       object = struct.new('person struct value', 'full name value', 'age value')
       expect(object.members).to eq([:personStruct, :full_name, :age])
+      expect(object.hash).to be_a(String)
     end
     
     it 'raises error if no attributes are passed in' do

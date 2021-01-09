@@ -24,6 +24,8 @@ Object.send(:remove_const, :Struct) if Object.constants.include?(:Struct)
 
 # Optional re-implmentation of Struct in Pure Ruby (to get around JS issues in Opal Struct)
 class Struct
+  include Enumerable
+
   class << self
     CLASS_DEFINITION_FOR_ATTRIBUTES = lambda do |attributes, keyword_init|
       lambda do |defined_class|
@@ -93,10 +95,17 @@ class Struct
         end
         
         def hash
-          self.class.hash +
-            to_a.each_with_index.map {|value, i| (i+1) * value.hash}.sum
+          if RUBY_ENGINE == 'opal'
+            # Opal doesn't implement hash as Integer everywhere, returning strings as themselves,
+            # so build a String everywhere for now as the safest common denominator to be consistent.
+            self.class.hash.to_s +
+              to_a.each_with_index.map {|value, i| (i+1).to_s + value.hash.to_s}.reduce(:+)
+          else
+            self.class.hash +
+              to_a.each_with_index.map {|value, i| i+1 * value.hash}.sum
+          end
         end
-        
+                
         if keyword_init
           def initialize(struct_class_keyword_args = {})
             members
@@ -129,12 +138,14 @@ class Struct
       end
     end
     
+    alias __new__ new
     def new(class_name_or_attribute, *attributes, keyword_init: false)
       raise 'Arguments cannot be nil' if ARG_VALIDATION[class_name_or_attribute, *attributes]
       class_name = CLASS_NAME_EXTRACTION[class_name_or_attribute]
       attributes.unshift(class_name_or_attribute) if class_name.nil?
       attributes = attributes.map(&:to_sym)
-      struct_class = Class.new(&CLASS_DEFINITION_FOR_ATTRIBUTES[attributes, keyword_init])
+      struct_class = Class.new(self, &CLASS_DEFINITION_FOR_ATTRIBUTES[attributes, keyword_init])
+      struct_class.singleton_class.define_method(:new) {|*args, &block| __new__(*args, &block)}
       class_name.nil? ? struct_class : const_set(class_name, struct_class)
     end
       
