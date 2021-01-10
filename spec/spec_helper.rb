@@ -111,5 +111,3 @@ $LOAD_PATH.unshift File.expand_path(File.join(__FILE__, '..', '..', 'lib'))
 $LOAD_PATH.unshift File.expand_path(File.join(__FILE__, '..'))
 
 require 'puts_debuggerer'
-
-require 'pure-struct'

@@ -1,5 +1,4 @@
 # TODO
-
-- Implement to_s (e.g. `#<struct Person full_name=nil, age=nil>` for `Person` class )
-
+      
+- handle case of named class in Opal
 - Optimize performance

@@ -2,16 +2,12 @@ require 'spec_helper'
 
 RSpec.describe Struct do
   before(:all) do
+    @ruby_engine = RUBY_ENGINE
     load File.expand_path(File.join(__dir__, '..', '..', 'lib/pure-struct.rb'))
   end
   
-  after(:all) do
-    Struct = NativeStruct
-    Object.send(:remove_const, :PersonStruct) if Object.constants.include?(:PersonStruct)
-  end
-    
   after do
-    RUBY_ENGINE = @ruby_engine
+    RUBY_ENGINE = @ruby_engine unless RUBY_ENGINE == @ruby_engine
   end
 
   let(:full_name) {'Sean Hux'}
@@ -21,7 +17,7 @@ RSpec.describe Struct do
     it 'builds a new anonymous class, can set/get attributes, and provide equality methods' do
       struct = Struct.new(:full_name, :age, keyword_init: true)
       expect(struct.name).to be_nil
-      expect(struct.inspect).to eq("#{struct.__inspect__}(keyword_init: true)")
+      expect(struct.inspect).to eq("#{struct.send(:__inspect__)}(keyword_init: true)")
       
       object = struct.new(full_name: full_name, age: age)
       expect(object).to be_a(struct)
@@ -45,9 +41,11 @@ RSpec.describe Struct do
       expect(object.select {|value| value.is_a?(Integer)}).to eq([age])
       expect(object.to_h).to eq(full_name: full_name, age: age)
       expect(object.to_a).to eq([full_name, age])
+      expect(object.to_s).to eq('#<struct full_name="Sean Hux", age=48>')
+      expect(object.inspect).to eq(object.to_s)
       expect(object.size).to eq(2)
       expect(object.length).to eq(2)
-      
+
       # setters
       
       object.full_name = 'Shaw Gibbins'
@@ -75,6 +73,14 @@ RSpec.describe Struct do
       expect(object2.eql?(object)).to eq(true)
       expect(object2 == object).to eq(true)
       expect(object2.hash).to eq(object.hash)
+      
+      # detect cycle
+      object.full_name = object
+      expect(object.to_s).to eq("#<struct full_name=#<struct #{struct.send(:__inspect__)}:...>, age=48>")
+      expect(object).to eq(object)
+      expect(object).to eql(object)
+      expect(object.hash).to eq(object.full_name.hash)
+      expect(object.hash).to be_a(Integer)
     end
         
     it 'builds a new named class with string class name, can set/get attributes, and provide equality methods' do
@@ -102,6 +108,8 @@ RSpec.describe Struct do
       expect(object.select {|value| value.is_a?(Integer)}).to eq([age])
       expect(object.to_h).to eq(full_name: full_name, age: age)
       expect(object.to_a).to eq([full_name, age])
+      expect(object.to_s).to eq('#<struct Struct::PersonStruct full_name="Sean Hux", age=48>')
+      expect(object.inspect).to eq(object.to_s)
       expect(object.size).to eq(2)
       expect(object.length).to eq(2)
       
@@ -132,6 +140,14 @@ RSpec.describe Struct do
       expect(object2.eql?(object)).to eq(true)
       expect(object2 == object).to eq(true)
       expect(object2.hash).to eq(object.hash)
+      
+      # detect cycle
+      object.full_name = object
+      expect(object.to_s).to eq("#<struct Struct::PersonStruct full_name=#<struct #{struct.send(:__inspect__)}:...>, age=48>")
+      expect(object).to eq(object)
+      expect(object).to eql(object)
+      expect(object.hash).to eq(object.full_name.hash)
+      expect(object.hash).to be_a(Integer)
     end
     
     it 'raises error if class name does not start with capital letter' do
@@ -142,12 +158,36 @@ RSpec.describe Struct do
     
     it 'does not raise error in Opal if class name does not start with capital letter, yet treats as an attribute instead (since Opal does not distinguish String from Symbol)' do
       RUBY_ENGINE = 'opal'
+      
+      expect {
+        Struct.new('PersonStruct', :full_name, :age, keyword_init: true)
+      }.to_not raise_error
+      object1 = Struct::PersonStruct.new(full_name: 'full name value', age: 48)
+      expect(object1.members).to eq([:full_name, :age])
+      expect(object1.hash).to be_a(String)
+      expect(object1.to_s).to eq("#<struct Struct::PersonStruct full_name=\"full name value\", age=48>")
+      expect(object1.inspect).to eq(object1.to_s)
+            
       struct = nil
       expect {
-        struct = Struct.new('personStruct', :full_name, :age)
+        struct = Struct.new('personStruct', :full_name, :age, keyword_init: true)
       }.to_not raise_error
-      object = struct.new('person struct value', 'full name value', 'age value')
+      object = struct.new(personStruct: 'person struct value', full_name: 'full name value', age: 48)
       expect(object.members).to eq([:personStruct, :full_name, :age])
+      expect(object.hash).to be_a(String)
+      expect(object.to_s).to eq("#<struct personStruct=\"person struct value\", full_name=\"full name value\", age=48>")
+      expect(object.inspect).to eq(object.to_s)
+      
+      # nil member
+      object.full_name = nil
+      expect(object.to_s).to eq("#<struct personStruct=\"person struct value\", full_name=nil, age=48>")
+      
+      # detect cycle
+      object.full_name = object
+      expect(object.to_s).to eq("#<struct personStruct=\"person struct value\", full_name=#<struct #{struct.send(:__inspect__)}:...>, age=48>")
+      expect(object).to eq(object)
+      expect(object).to eql(object)
+      expect(object.hash).to eq(object.full_name.hash)
       expect(object.hash).to be_a(String)
     end
     
@@ -177,7 +217,7 @@ RSpec.describe Struct do
     it 'builds a new anonymous class, can set/get attributes, and provide equality methods' do
       struct = Struct.new(:full_name, 'age')
       expect(struct.name).to be_nil
-      expect(struct.inspect).to eq("#{struct.__inspect__}")
+      expect(struct.inspect).to eq("#{struct.send(:__inspect__)}")
       
       object = struct.new(full_name, age)
       
@@ -198,6 +238,8 @@ RSpec.describe Struct do
       expect(object.select {|value| value.is_a?(Integer)}).to eq([age])
       expect(object.to_h).to eq(full_name: full_name, age: age)
       expect(object.to_a).to eq([full_name, age])
+      expect(object.to_s).to eq('#<struct full_name="Sean Hux", age=48>')
+      expect(object.inspect).to eq(object.to_s)
       expect(object.size).to eq(2)
       expect(object.length).to eq(2)
       
@@ -228,6 +270,14 @@ RSpec.describe Struct do
       expect(object2.eql?(object)).to eq(true)
       expect(object2 == object).to eq(true)
       expect(object2.hash).to eq(object.hash)
+      
+      # detect cycle
+      object.full_name = object
+      expect(object.to_s).to eq("#<struct full_name=#<struct #{struct.send(:__inspect__)}:...>, age=48>")
+      expect(object).to eq(object)
+      expect(object).to eql(object)
+      expect(object.hash).to eq(object.full_name.hash)
+      expect(object.hash).to be_a(Integer)
     end
     
     it 'builds a new named class with string class name, can set/get attributes, and provide equality methods' do
@@ -255,6 +305,8 @@ RSpec.describe Struct do
       expect(object.select {|value| value.is_a?(Integer)}).to eq([age])
       expect(object.to_h).to eq(full_name: full_name, age: age)
       expect(object.to_a).to eq([full_name, age])
+      expect(object.to_s).to eq('#<struct Struct::PersonStruct full_name="Sean Hux", age=48>')
+      expect(object.inspect).to eq(object.to_s)
       expect(object.size).to eq(2)
       expect(object.length).to eq(2)
       
@@ -285,6 +337,14 @@ RSpec.describe Struct do
       expect(object2.eql?(object)).to eq(true)
       expect(object2 == object).to eq(true)
       expect(object2.hash).to eq(object.hash)
+      
+      # detect cycle
+      object.full_name = object
+      expect(object.to_s).to eq("#<struct Struct::PersonStruct full_name=#<struct #{struct.send(:__inspect__)}:...>, age=48>")
+      expect(object).to eq(object)
+      expect(object).to eql(object)
+      expect(object.hash).to eq(object.full_name.hash)
+      expect(object.hash).to be_a(Integer)
     end
   end
 end
