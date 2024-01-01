@@ -4,6 +4,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/AndyObtiva/pure-struct/badge.svg?branch=master)](https://coveralls.io/github/AndyObtiva/pure-struct?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/2659b419fd5f7d38e443/maintainability)](https://codeclimate.com/github/AndyObtiva/pure-struct/maintainability)
 
+## Pure Struct is archived because it is no longer needed given that Opal fixed the implementation of Struct, and other Rubies like JRuby have a correct implementation of Struct already.
+
 Pure [Ruby](https://www.ruby-lang.org/) re-implementation of [Struct](https://ruby-doc.org/core-2.7.0/Struct.html) to ensure cross-Ruby functionality where needed (e.g. [Opal](https://opalrb.com/))
 
 It is useful when:
@@ -14,6 +16,8 @@ It is useful when:
 In all other cases, stick to native [Ruby Struct](https://ruby-doc.org/core-2.7.0/Struct.html) instead since it's optimized for performance.
 
 ## Usage Instructions
+
+### Pure Struct is archived because it is no longer needed given that Opal fixed the implementation of Struct, and other Rubies like JRuby have a correct implementation of Struct already.
 
 Run:
 
